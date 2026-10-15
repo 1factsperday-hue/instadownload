@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f7f2">
+  <meta name="description" content="Check Instagram photo and Reel links and learn what the official API can return at original quality.">
+  <title>Framekeep — Instagram media, at source quality</title>
+  <style>
+    :root{--ink:#171817;--muted:#686b65;--paper:#f7f7f2;--card:#fff;--line:#e6e7df;--lime:#d9f36b;--orange:#fb6a4c;--green:#1e754b;--shadow:0 18px 50px rgba(27,33,21,.09)}
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:-.025em}
+    button,input{font:inherit}
+    button{cursor:pointer}
+    a{color:inherit}
+    .wrap{width:min(1160px,calc(100% - 48px));margin:0 auto}
+    .topbar{height:78px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(23,24,23,.08)}
+    .brand{display:flex;align-items:center;gap:10px;font-size:19px;font-weight:750;letter-spacing:-.055em;text-decoration:none}
+    .brand-icon{width:31px;height:31px;border-radius:11px;background:var(--ink);display:grid;place-items:center;color:var(--lime)}
+    .brand-icon svg{width:18px;height:18px}
+    .top-right{display:flex;align-items:center;gap:22px;color:#575a54;font-size:13px;font-weight:600}
+    .top-right a{text-decoration:none}
+    .status-pill{display:inline-flex;align-items:center;gap:8px;border:1px solid #e5e7dd;background:#fff;padding:8px 12px;border-radius:999px;color:#596053;font-size:11px;font-weight:700;letter-spacing:.02em}
+    .status-dot{width:7px;height:7px;border-radius:50%;background:#e7a62f;box-shadow:0 0 0 3px #fff4df}
+    .hero{padding:72px 0 70px;display:grid;grid-template-columns:1.03fr .97fr;gap:66px;align-items:center}
+    .eyebrow{display:flex;align-items:center;gap:9px;font-size:11px;text-transform:uppercase;font-weight:800;letter-spacing:.14em;color:#6a6e62;margin-bottom:23px}
+    .eyebrow-mark{width:22px;height:2px;background:var(--orange)}
+    h1{font-size:clamp(48px,6.3vw,76px);line-height:.99;letter-spacing:-.08em;margin:0 0 23px;font-weight:760;max-width:630px}
+    h1 .accent{position:relative;white-space:nowrap}
+    h1 .accent:after{content:"";position:absolute;z-index:-1;left:2px;right:-5px;bottom:3px;height:15px;background:var(--lime);transform:rotate(-1deg);border-radius:3px}
+    .lead{max-width:510px;color:#62655e;font-size:17px;line-height:1.65;letter-spacing:-.018em;margin:0 0 27px}
+    .input-card{background:var(--card);border:1px solid #e6e8df;border-radius:19px;padding:10px;box-shadow:0 12px 35px rgba(37,43,29,.055);max-width:580px}
+    .input-row{display:flex;gap:8px}
+    .url-field{flex:1;min-width:0;border:0;outline:0;border-radius:12px;padding:15px 13px;color:var(--ink);font-size:14px;letter-spacing:-.015em;background:transparent}
+    .url-field::placeholder{color:#9a9c94}
+    .url-field:focus-visible{outline:2px solid #d9e9a3;outline-offset:-2px}
+    .check-btn{border:0;background:var(--ink);color:white;border-radius:12px;padding:0 21px;min-height:50px;font-size:13px;font-weight:700;letter-spacing:-.01em;transition:transform .16s,background .16s}
+    .check-btn:hover{background:#30332e;transform:translateY(-1px)}
+    .input-bottom{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #eff0ea;margin:9px 3px 0;padding:10px 8px 2px;color:#777a72;font-size:11px}
+    .paste-btn{border:0;background:transparent;color:#43473f;font-size:11px;font-weight:700;padding:4px 0}
+    .paste-btn:hover{text-decoration:underline}
+    .form-note{min-height:19px;color:#74786f;font-size:12px;margin:11px 3px 0;line-height:1.5}
+    .result{display:none;border-radius:14px;border:1px solid #efdbad;background:#fffaf0;padding:15px 16px;margin-top:14px;color:#514a35}
+    .result.visible{display:block}
+    .result-title{display:flex;gap:9px;align-items:center;font-weight:750;font-size:13px;margin-bottom:6px;color:#302e27}
+    .result-title .status-dot{background:#e7a62f;box-shadow:0 0 0 3px #fdf1d8}
+    .result p{font-size:12px;line-height:1.55;margin:0;color:#686253;letter-spacing:-.01em}
+    .trust-row{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:21px;color:#5f635b;font-size:11px;font-weight:650}
+    .trust-item{display:flex;align-items:center;gap:7px}
+    .checkmark{width:15px;height:15px;border-radius:50%;display:grid;place-items:center;background:#e5f0cd;color:#547522;font-size:10px;font-weight:900}
+    .preview-shell{position:relative;min-height:478px;background:#171c1c;border-radius:28px;overflow:hidden;box-shadow:var(--shadow);isolation:isolate}
+    .preview-shell:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,11,11,.02) 0%,rgba(7,11,11,.1) 40%,rgba(7,11,11,.91) 100%);z-index:1}
+    .preview-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 44%;filter:saturate(.8)}
+    .top-overlay{position:absolute;z-index:2;top:18px;left:19px;right:19px;display:flex;justify-content:space-between;align-items:center;color:white}
+    .tiny-label{font-size:10px;font-weight:750;letter-spacing:.13em;text-transform:uppercase;color:rgba(255,255,255,.9)}
+    .source-badge{font-size:10px;font-weight:750;color:#192018;background:var(--lime);border-radius:99px;padding:8px 11px;display:flex;align-items:center;gap:6px}
+    .source-badge svg{width:12px;height:12px}
+    .preview-content{position:absolute;z-index:2;left:26px;right:26px;bottom:25px;color:#fff}
+    .preview-caption{color:rgba(255,255,255,.7);font-size:10px;letter-spacing:.15em;text-transform:uppercase;font-weight:750;margin:0 0 9px}
+    .preview-title{font-size:27px;line-height:1.1;letter-spacing:-.055em;font-weight:700;margin:0 0 19px;max-width:330px}
+    .quality-row{display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(255,255,255,.2);padding-top:15px}
+    .quality-copy{display:flex;flex-direction:column;gap:4px}
+    .quality-copy strong{font-size:12px;font-weight:700}
+    .quality-copy span{font-size:10px;color:rgba(255,255,255,.68);letter-spacing:0}
+    .play-icon{height:41px;width:41px;border:1px solid rgba(255,255,255,.55);background:rgba(255,255,255,.14);backdrop-filter:blur(8px);border-radius:50%;display:grid;place-items:center}
+    .play-icon svg{width:13px;height:13px;margin-left:2px}
+    .floating-note{position:absolute;z-index:3;top:104px;right:-20px;background:#fff;border-radius:13px;padding:12px 15px;box-shadow:0 14px 35px rgba(0,0,0,.18);display:flex;align-items:center;gap:10px;transform:rotate(2deg)}
+    .floating-check{width:27px;height:27px;border-radius:9px;background:#ecf5d8;color:#506e1c;display:grid;place-items:center;font-size:14px;font-weight:900}
+    .floating-note b{display:block;font-size:11px;letter-spacing:-.02em}
+    .floating-note small{display:block;color:#7b7d76;font-size:9px;margin-top:3px}
+    .quality-strip{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);background:#fff;border-radius:18px;margin:4px 0 79px;overflow:hidden}
+    .strip-cell{padding:20px 24px;display:flex;gap:13px;align-items:center}
+    .strip-cell+.strip-cell{border-left:1px solid var(--line)}
+    .strip-icon{height:37px;width:37px;flex:none;border-radius:12px;background:#f1f3e9;display:grid;place-items:center;color:#4d5541}
+    .strip-icon svg{height:18px;width:18px}
+    .strip-text b{display:block;font-size:13px;letter-spacing:-.03em;margin-bottom:4px}
+    .strip-text span{font-size:11px;color:#797c74;letter-spacing:-.015em}
+    .how{padding:0 0 76px}
+    .section-head{display:flex;justify-content:space-between;align-items:end;margin-bottom:26px;gap:20px}
+    .section-head h2{font-size:31px;line-height:1.05;letter-spacing:-.065em;margin:0}
+    .section-head p{font-size:12px;line-height:1.6;color:#767970;max-width:330px;margin:0}
+    .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+    .step{background:#efefe9;border-radius:17px;padding:21px 21px 23px;min-height:145px}
+    .step-number{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:8px;background:#fff;color:#55594f;font-size:11px;font-weight:800;margin-bottom:17px}
+    .step h3{font-size:15px;letter-spacing:-.04em;margin:0 0 7px}
+    .step p{font-size:11px;color:#6c7067;line-height:1.55;margin:0;max-width:290px}
+    .notice{display:flex;gap:13px;border:1px solid #eadfbe;background:#fffcf2;padding:17px 19px;border-radius:15px;margin:0 0 56px}
+    .notice-icon{width:24px;height:24px;flex:none;border-radius:8px;background:#fff0ca;color:#8e6b1e;display:grid;place-items:center;font-weight:800;font-size:13px}
+    .notice strong{display:block;font-size:12px;margin-bottom:5px}
+    .notice p{font-size:11px;line-height:1.55;color:#716a59;margin:0}
+    footer{padding:20px 0 30px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:24px;color:#777a72;font-size:10px;line-height:1.6}
+    footer strong{color:#3e413c}
+    .footer-brand{font-size:12px;color:#353833;font-weight:750}
+    @media(max-width:900px){.hero{gap:34px;grid-template-columns:1fr 1fr}.floating-note{right:-8px}.preview-shell{min-height:430px}.strip-cell{padding:17px 16px}}
+    @media(max-width:700px){.wrap{width:min(100% - 32px,540px)}.topbar{height:67px}.top-right{gap:10px}.top-right>a{display:none}.status-pill{font-size:10px;padding:7px 10px}.hero{grid-template-columns:1fr;gap:34px;padding:51px 0 43px}.hero-copy{order:1}.hero-visual{order:2}.eyebrow{margin-bottom:18px}h1{font-size:clamp(49px,14vw,69px);margin-bottom:18px}.lead{font-size:15px;line-height:1.6}.preview-shell{min-height:370px;border-radius:22px}.floating-note{top:68px;right:10px}.quality-strip{grid-template-columns:1fr;margin:0 0 60px}.strip-cell{padding:14px 17px}.strip-cell+.strip-cell{border-left:0;border-top:1px solid var(--line)}.how{padding-bottom:55px}.section-head{display:block}.section-head h2{font-size:28px;margin-bottom:10px}.steps{grid-template-columns:1fr;gap:9px}.step{min-height:0;padding:17px}.step-number{margin-bottom:12px}.notice{margin-bottom:39px}footer{display:block}footer>div+div{margin-top:11px}}
+    @media(max-width:420px){.input-row{display:block}.url-field{width:100%;padding:14px 11px}.check-btn{width:100%;min-height:47px}.input-bottom{margin-top:7px}.preview-shell{min-height:345px}.trust-row{gap:10px 14px}.quality-copy span{font-size:9px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important}}
+  </style>
+</head>
+<body>
+  <header class="wrap topbar">
+    <a class="brand" href="#top" aria-label="Framekeep home">
+      <span class="brand-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 8.5h14v10H5z" stroke="currentColor" stroke-width="1.8"/><path d="M8 5.5h11v3M9 15l2.4-2.5 2.2 2 1.5-1.5 2.9 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      framekeep
+    </a>
+    <nav class="top-right" aria-label="Main navigation">
+      <a href="#how">How it works</a>
+      <span class="status-pill"><i class="status-dot" aria-hidden="true"></i> API not connected</span>
+    </nav>
+  </header>
+
+  <main id="top" class="wrap">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="eyebrow-mark"></span> Instagram photo &amp; Reel link checker</div>
+        <h1 id="hero-title">Keep the <span class="accent">original.</span></h1>
+        <p class="lead">Paste a post or Reel link to check it. When authorized access is connected, Framekeep can hand you the best original media file Instagram makes available—without another round of compression.</p>
+        <form id="link-form" class="input-card" novalidate>
+          <div class="input-row">
+            <label class="sr-only" for="instagram-url">Instagram photo or Reel URL</label>
+            <input class="url-field" id="instagram-url" name="url" type="url" inputmode="url" autocomplete="url" placeholder="Paste an Instagram link…" aria-describedby="form-note result" required>
+            <button class="check-btn" type="submit">Check link <span aria-hidden="true">↗</span></button>
+          </div>
+          <div class="input-bottom"><span>Supports photo posts and Reels</span><button class="paste-btn" id="sample-btn" type="button">Use sample link</button></div>
+        </form>
+        <p class="form-note" id="form-note" aria-live="polite">Your link stays in this page preview. No Instagram page scraping.</p>
+        <div class="result" id="result" role="status" aria-live="polite">
+          <div class="result-title"><i class="status-dot" aria-hidden="true"></i><span id="result-title">Link recognized</span></div>
+          <p id="result-copy"></p>
+        </div>
+        <div class="trust-row" aria-label="Service principles">
+          <span class="trust-item"><i class="checkmark" aria-hidden="true">✓</i> No re-encoding</span>
+          <span class="trust-item"><i class="checkmark" aria-hidden="true">✓</i> Permission-first</span>
+          <span class="trust-item"><i class="checkmark" aria-hidden="true">✓</i> No fake 4K claims</span>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="preview-shell" aria-label="Illustrative preview of source-quality media">
+          <img class="preview-image" src="assets/media-preview.jpg" alt="A person recording a street scene on a phone">
+          <div class="top-overlay"><span class="tiny-label">Source file · not a re-render</span><span class="source-badge"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 2.5v10m0 0 3.5-3.5M10 12.5 6.5 9M4 14.5v2h12v-2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg> Original asset</span></div>
+          <div class="floating-note"><span class="floating-check">↗</span><span><b>Best source available</b><small>Quality stays with the original</small></span></div>
+          <div class="preview-content">
+            <p class="preview-caption">Your media, untouched</p>
+            <p class="preview-title">Keep the moments that matter.</p>
+            <div class="quality-row"><div class="quality-copy"><strong>Original URL. No re-encode.</strong><span>Resolution depends on the source Instagram returns.</span></div><span class="play-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="white"><path d="M5 3.7c0-.6.7-1 1.2-.7l6.1 4.2a1 1 0 0 1 0 1.6l-6.1 4.2c-.5.4-1.2 0-1.2-.7V3.7Z"/></svg></span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="quality-strip" aria-label="How source quality works">
+      <div class="strip-cell"><span class="strip-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 6.5h16v11H4zM8 4h8M8 20h8M7 14l3-3 2.5 2.5L15 11l2 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="strip-text"><b>Best file Instagram returns</b><span>No invented resolutions or upscaling</span></span></div>
+      <div class="strip-cell"><span class="strip-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3.5 19 6v5.2c0 4.4-2.8 7.4-7 9.3-4.2-1.9-7-4.9-7-9.3V6l7-2.5Z" stroke="currentColor" stroke-width="1.6"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="strip-text"><b>Access with permission</b><span>Official API access only—no scraping</span></span></div>
+      <div class="strip-cell"><span class="strip-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 5h14v14H5zM8 9h8M8 12h8M8 15h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span><span class="strip-text"><b>Reels + photo posts</b><span>Subject to account and media availability</span></span></div>
+    </section>
+
+    <section class="how" id="how" aria-labelledby="how-title">
+      <div class="section-head"><h2 id="how-title">Simple by design.</h2><p>One link in. The original file out—when the official API makes it available to an authorized account.</p></div>
+      <div class="steps">
+        <article class="step"><span class="step-number">01</span><h3>Paste a public link</h3><p>Use a valid Instagram photo post or Reel URL. This preview checks only the URL format.</p></article>
+        <article class="step"><span class="step-number">02</span><h3>Check authorized access</h3><p>A connected Meta API account must be permitted to view the media. Private content stays private.</p></article>
+        <article class="step"><span class="step-number">03</span><h3>Save the best source</h3><p>Use the original media URL Instagram provides, where available—no upscaling or extra compression.</p></article>
+      </div>
+    </section>
+
+    <aside class="notice" aria-label="Connection status and limitations"><span class="notice-icon" aria-hidden="true">i</span><div><strong>Live downloads are not connected in this preview.</strong><p>Instagram's official API may omit a video file—for example, because of licensed audio, account permissions, or the creator's download settings. A recognized link is not a guarantee of a downloadable file. We do not scrape Instagram or bypass those controls.</p></div></aside>
+  </main>
+
+  <footer class="wrap"><div><span class="footer-brand">framekeep</span><br>Best source available. No quality theater.</div><div>Use only media you own or have permission to save. Instagram is a trademark of Meta; Framekeep is an independent preview and is not affiliated with Meta.</div></footer>
+
+  <script>
+    const input = document.getElementById('instagram-url');
+    const form = document.getElementById('link-form');
+    const result = document.getElementById('result');
+    const resultTitle = document.getElementById('result-title');
+    const resultCopy = document.getElementById('result-copy');
+    const formNote = document.getElementById('form-note');
+    const sampleButton = document.getElementById('sample-btn');
+
+    function classifyInstagramUrl(raw) {
+      let url;
+      try { url = new URL(raw.trim()); } catch { return { valid: false }; }
+      const host = url.hostname.toLowerCase().replace(/^www\./, '').replace(/^m\./, '');
+      if (url.protocol !== 'https:' || host !== 'instagram.com') return { valid: false };
+      const match = url.pathname.match(/^\/(reel|reels|p|tv)\/([^/]+)/i);
+      if (!match) return { valid: false };
+      const kind = /^(reel|reels|tv)$/i.test(match[1]) ? 'Reel' : 'photo post';
+      return { valid: true, kind };
+    }
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const parsed = classifyInstagramUrl(input.value);
+      result.classList.add('visible');
+      if (!input.value.trim()) {
+        resultTitle.textContent = 'Add a link to check';
+        resultCopy.textContent = 'Paste an Instagram photo post or Reel URL above. This preview checks the link format only.';
+        input.focus();
+        return;
+      }
+      if (!parsed.valid) {
+        resultTitle.textContent = 'That link doesn’t look supported';
+        resultCopy.textContent = 'Use an https://www.instagram.com/p/… or /reel/… link. No page content is fetched by this preview.';
+        return;
+      }
+      resultTitle.textContent = parsed.kind + ' link recognized';
+      resultCopy.textContent = 'This preview can’t fetch media yet: authorized Meta API access is not connected. When enabled, it can use the best original file Instagram returns; private or restricted media may be unavailable.';
+    });
+
+    sampleButton.addEventListener('click', () => {
+      input.value = 'https://www.instagram.com/reel/sample-demo/';
+      input.focus();
+      formNote.textContent = 'Sample URL loaded. Check it to see the preview-only status.';
+    });
+
+    input.addEventListener('input', () => {
+      result.classList.remove('visible');
+      formNote.textContent = 'Your link stays in this page preview. No Instagram page scraping.';
+    });
+  </script>
+  <style>.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}</style>
+</body>
+</html>
